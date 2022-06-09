@@ -146,10 +146,13 @@ func (r *Raft) requestVote(req *pb.RequestVoteRequest) (*pb.RequestVoteResponse,
 		r.logger.Info("increase term since receive a newer one", zap.Uint64("term", r.currentTerm))
 	}
 
-	if false {
-		// TODO: (A.7) - if votedFor is null or candidateId, and candidate’s log is at least as up-to-date as receiver’s log, grant vote
-		// Hint: (fix the condition) if already vote for another candidate, reply false
+	/*
+		TODO: (A.7) - if votedFor is null or candidateId, and candidate’s log is at
+										least as up-to-date as receiver’s log, grant vote.
+	*/
 
+	// Return false if we already vote to other Candidate
+	if r.votedFor != 0 && r.votedFor != req.GetCandidateId() {
 		r.logger.Info("reject since already vote for another candidate",
 			zap.Uint64("term", r.currentTerm),
 			zap.Uint32("votedFor", r.votedFor))
@@ -157,22 +160,24 @@ func (r *Raft) requestVote(req *pb.RequestVoteRequest) (*pb.RequestVoteResponse,
 		return &pb.RequestVoteResponse{Term: r.currentTerm, VoteGranted: false}, nil
 	}
 
-	if false {
-		// TODO: (A.7) - if votedFor is null or candidateId, and candidate’s log is at least as up-to-date as receiver’s log, grant vote
-		// Hint: (fix the condition) if the local last entry is more up-to-date than the candidate's last entry, reply false
-		// Hint: use `getLastLog` to get the last log entry
+	// Then we get the latest logID and Term
+	//latestLogID, laestLogTerm := r.getLastLog()
+	latestLogID, laestLogTerm := r.getLastLog()
+
+	// Return false if we got larger log Term more up-to-date than the candidate's last entry
+	if latestLogID > req.GetLastLogId() || laestLogTerm > req.GetLastLogTerm() {
 		r.logger.Info("reject since last entry is more up-to-date")
 
 		return &pb.RequestVoteResponse{Term: r.currentTerm, VoteGranted: false}, nil
 	}
 
-	// TODO: (A.7) - if votedFor is null or candidateId, and candidate’s log is at least as up-to-date as receiver’s log, grant vote
 	// Hint: now vote should be granted, use `voteFor` to set votedFor
 	r.voteFor(req.GetCandidateId(), false)
 	r.logger.Info("vote for another candidate", zap.Uint32("votedFor", r.votedFor))
 
 	// TODO: (A.8)* - reset the `lastHeartbeat`
 	// Description: start from the current line, the current request is a valid RPC
+	r.lastHeartbeat = time.Now()
 
 	return &pb.RequestVoteResponse{Term: r.currentTerm, VoteGranted: true}, nil
 }
