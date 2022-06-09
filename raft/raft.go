@@ -73,9 +73,18 @@ func (r *Raft) applyCommand(req *pb.ApplyCommandRequest) (*pb.ApplyCommandRespon
 func (r *Raft) appendEntries(req *pb.AppendEntriesRequest) (*pb.AppendEntriesResponse, error) {
 	// TODO: (A.1) - reply false if term < currentTerm
 	// Log: r.logger.Info("reject append entries since current term is older")
+	if req.GetTerm() < r.currentTerm {
+		r.logger.Info("reject append entries since current term is older")
+		reponse := pb.AppendEntriesResponse{
+			Term:    r.currentTerm,
+			Success: false}
+
+		return &reponse, nil
+	}
 
 	// TODO: (A.2)* - reset the `lastHeartbeat`
 	// Description: start from the current line, the current request is a valid RPC
+	r.lastHeartbeat = time.Now()
 
 	// TODO: (A.3) - if RPC request or response contains term T > currentTerm: set currentTerm = T, convert to follower
 	// Hint: use `toFollower` to convert to follower
