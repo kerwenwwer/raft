@@ -129,10 +129,22 @@ func (r *Raft) appendEntries(req *pb.AppendEntriesRequest) (*pb.AppendEntriesRes
 func (r *Raft) requestVote(req *pb.RequestVoteRequest) (*pb.RequestVoteResponse, error) {
 	// TODO: (A.5) - reply false if term < currentTerm
 	// Log: r.logger.Info("reject request vote since current term is older")
+	if req.GetTerm() < r.currentTerm {
+		response := pb.RequestVoteResponse{
+			Term:        r.currentTerm,
+			VoteGranted: false,
+		}
+		r.logger.Info("reject request vote since current term is older")
+		return &response, nil
+	}
 
 	// TODO: (A.6) - if RPC request or response contains term T > currentTerm: set currentTerm = T, convert to follower
 	// Hint: use `toFollower` to convert to follower
 	// Log: r.logger.Info("increase term since receive a newer one", zap.Uint64("term", r.currentTerm))
+	if req.GetTerm() > r.currentTerm {
+		r.toFollower(req.GetTerm())
+		r.logger.Info("increase term since receive a newer one", zap.Uint64("term", r.currentTerm))
+	}
 
 	if false {
 		// TODO: (A.7) - if votedFor is null or candidateId, and candidate’s log is at least as up-to-date as receiver’s log, grant vote
