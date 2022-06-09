@@ -89,9 +89,19 @@ func (r *Raft) appendEntries(req *pb.AppendEntriesRequest) (*pb.AppendEntriesRes
 	// TODO: (A.3) - if RPC request or response contains term T > currentTerm: set currentTerm = T, convert to follower
 	// Hint: use `toFollower` to convert to follower
 	// Log: r.logger.Info("increase term since receive a newer one", zap.Uint64("term", r.currentTerm))
+	if req.GetTerm() > r.currentTerm {
+		//r.currentTerm = req.GetTerm()
+		r.toFollower(req.GetTerm())
+		r.logger.Info("increase term since receive a newer one", zap.Uint64("term", r.currentTerm))
+	}
 
 	// TODO: (A.4) - if AppendEntries RPC received from new leader: convert to follower
 	// Log: r.logger.Info("receive request from leader, fallback to follower", zap.Uint64("term", r.currentTerm))
+	if req.GetTerm() == r.currentTerm && r.state != Follower {
+		//r.currentTerm = req.GetTerm()
+		r.toFollower(req.GetTerm())
+		r.logger.Info("receive request from leader, fallback to follower", zap.Uint64("term", r.currentTerm))
+	}
 
 	prevLogId := req.GetPrevLogId()
 	prevLogTerm := req.GetPrevLogTerm()
