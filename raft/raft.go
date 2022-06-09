@@ -161,7 +161,6 @@ func (r *Raft) requestVote(req *pb.RequestVoteRequest) (*pb.RequestVoteResponse,
 	}
 
 	// Then we get the latest logID and Term
-	//latestLogID, laestLogTerm := r.getLastLog()
 	latestLogID, laestLogTerm := r.getLastLog()
 
 	// Return false if we got larger log Term more up-to-date than the candidate's last entry
@@ -299,16 +298,24 @@ func (r *Raft) voteForSelf(grantedVotes *int) {
 	// TODO: (A.10) increment currentTerm
 	// TODO: (A.10) vote for self
 	// Hint: use `voteFor` to vote for self
-
+	*grantedVotes++
+	r.voteFor(r.id, true)
 	r.logger.Info("vote for self", zap.Uint64("term", r.currentTerm))
 }
 
 func (r *Raft) broadcastRequestVote(ctx context.Context, voteCh chan *voteResult) {
 	r.logger.Info("broadcast request vote", zap.Uint64("term", r.currentTerm))
 
+	// Then we get the latest logID and Term
+	latestLogID, laestLogTerm := r.getLastLog()
+
 	req := &pb.RequestVoteRequest{
 		// TODO: (A.11) - send RequestVote RPCs to all other servers (set all fields of `req`)
 		// Hint: use `getLastLog` to get the last log entry
+		Term:        r.currentTerm,
+		CandidateId: r.id,
+		LastLogId:   latestLogID,
+		LastLogTerm: laestLogTerm,
 	}
 
 	// TODO: (A.11) - send RequestVote RPCs to all other servers (modify the code to send `RequestVote` RPCs in parallel)
