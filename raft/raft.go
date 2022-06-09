@@ -449,6 +449,12 @@ func (r *Raft) handleAppendEntriesResult(result *appendEntriesResult) {
 	// TODO: (A.15) - if RPC request or response contains term T > currentTerm: set currentTerm = T, convert to follower
 	// Hint: use `toFollower` to convert to follower
 	// Log: r.logger.Info("receive new term on AppendEntries response, fallback to follower", zap.Uint32("peer", result.peerId))
+	if result.GetTerm() > r.currentTerm {
+		r.toFollower(result.GetTerm())
+		r.logger.Info("receive new term on AppendEntries response, fallback to follower", zap.Uint32("peer", result.peerId))
+
+		return
+	}
 
 	entries := result.req.GetEntries()
 
