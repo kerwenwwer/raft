@@ -323,13 +323,16 @@ func (r *Raft) broadcastRequestVote(ctx context.Context, voteCh chan *voteResult
 		peerId := peerId
 		peer := peer
 
-		resp, err := peer.RequestVote(ctx, req)
-		if err != nil {
-			r.logger.Error("fail to send RequestVote RPC", zap.Error(err), zap.Uint32("peer", peerId))
-			return
-		}
+		// Using go routine to run RequestVote in parallel
+		go func() {
+			resp, err := peer.RequestVote(ctx, req)
+			if err != nil {
+				r.logger.Error("fail to send RequestVote RPC", zap.Error(err), zap.Uint32("peer", peerId))
+				return
+			}
 
-		voteCh <- &voteResult{RequestVoteResponse: resp, peerId: peerId}
+			voteCh <- &voteResult{RequestVoteResponse: resp, peerId: peerId}
+		}()
 	}
 }
 
