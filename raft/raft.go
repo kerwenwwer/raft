@@ -65,9 +65,18 @@ func (r *Raft) applyCommand(req *pb.ApplyCommandRequest) (*pb.ApplyCommandRespon
 	// Hint:
 	// - use `getLastLog` to get the last log ID
 	// - use `appendLogs` to append new log
+	latestLogID, _ := r.getLastLog()
+
+	entry := pb.Entry{
+		Id:   latestLogID + 1,
+		Term: r.currentTerm,
+		Data: req.GetData(),
+	}
+
+	r.appendLogs([]*pb.Entry{&entry})
 
 	// TODO: (B.1)* - return the new log entry
-	return nil, nil
+	return &pb.ApplyCommandResponse{Entry: &entry}, nil
 }
 
 func (r *Raft) appendEntries(req *pb.AppendEntriesRequest) (*pb.AppendEntriesResponse, error) {
