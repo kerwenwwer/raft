@@ -6,6 +6,7 @@ import (
 
 	"github.com/justin0u0/raft/pb"
 	"go.uber.org/zap"
+	"golang.org/x/exp/constraints"
 )
 
 type Raft struct {
@@ -27,6 +28,13 @@ type Raft struct {
 	rpcCh chan *rpc
 	// applyCh stores logs that can be applied
 	applyCh chan *pb.Entry
+}
+
+func min[T constraints.Ordered](a, b T) T {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 var _ pb.RaftServer = (*Raft)(nil)
@@ -145,6 +153,13 @@ func (r *Raft) appendEntries(req *pb.AppendEntriesRequest) (*pb.AppendEntriesRes
 	// Hint: use `getLastLog` to get the index of last new entry
 	// Hint: use `applyLogs` to apply(commit) new logs in background
 	// Log: r.logger.Info("update commit index from leader", zap.Uint64("commitIndex", r.commitIndex))
+	if req.GetLeaderCommitId() > r.commitIndex {
+		latestLogID, _ := r.getLastLog()
+		r.setCommitIndex(min(req.GetLeaderCommitId(), latestLogID))
+		r.logger.Info("update commit index from leader", zap.Uint64("commitIndex", r.commitIndex))
+		//apply(commit) new logs in background
+		go r.applyLogs(r.applyCh)
+	}
 
 	return &pb.AppendEntriesResponse{Term: r.currentTerm, Success: true}, nil
 }

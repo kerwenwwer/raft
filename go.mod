@@ -1,6 +1,6 @@
 module github.com/justin0u0/raft
 
-go 1.17
+go 1.18
 
 require (
 	go.uber.org/zap v1.20.0
@@ -10,12 +10,16 @@ require (
 )
 
 require (
-	github.com/golang/protobuf v1.5.2 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
-	golang.org/x/net v0.0.0-20210428140749-89ef3d95e781 // indirect
-	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
-	golang.org/x/text v0.3.6 // indirect
+	golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f // indirect
+	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 // indirect
+)
+
+require (
+	github.com/golang/protobuf v1.5.2 // indirect
+	golang.org/x/exp v0.0.0-20220609121020-a51bd0440498
+	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
