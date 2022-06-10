@@ -117,6 +117,16 @@ func (r *Raft) appendEntries(req *pb.AppendEntriesRequest) (*pb.AppendEntriesRes
 	if prevLogId != 0 && prevLogTerm != 0 {
 		// TODO: (B.2) - reply false if log doesn’t contain an entry at prevLogIndex whose term matches prevLogTerm
 		// Hint: use `getLog` to get log with ID equals to prevLogId
+		prevLog := r.getLog(prevLogId)
+		if prevLogTerm != prevLog.GetTerm() {
+			r.logger.Info("the given previous log from leader is missing or mismatched", zap.Uint64("prevLogId", prevLogId), zap.Uint64("prevLogTerm", prevLogTerm), zap.Uint64("logTerm", prevLog.GetTerm()))
+			// we return false
+			reponse := pb.AppendEntriesResponse{
+				Term:    r.currentTerm,
+				Success: false}
+
+			return &reponse, nil
+		}
 		// Log: r.logger.Info("the given previous log from leader is missing or mismatched", zap.Uint64("prevLogId", prevLogId), zap.Uint64("prevLogTerm", prevLogTerm), zap.Uint64("logTerm", log.GetTerm()))
 	}
 
